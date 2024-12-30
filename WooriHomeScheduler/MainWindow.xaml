@@ -9,6 +9,9 @@
     Width="800"
     Height="450"
     mc:Ignorable="d">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -39,7 +42,7 @@
             </StackPanel>
             <TextBlock Margin="5,10,0,0" Text="근무 인원을 공백으로 구분해 입력하시오." />
             <TextBlock Margin="7,5" Text="예) 민지 하니 다니엘 해린 혜인" />
-            <TextBox Margin="5" />
+            <TextBox Margin="5" Text="{Binding Workers}" />
             <Button
                 Width="100"
                 Height="30"
