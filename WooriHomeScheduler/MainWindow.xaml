@@ -44,7 +44,7 @@
                 Margin="0,10,0,0"
                 FontWeight="Bold"
                 Text="근무 인원" />
-            <TextBlock Margin="5" Text="공백으로 구분해 입력하시오. e.g. 민지 하니 다니엘 해린 혜인" />
+            <TextBlock Margin="5" Text="공백으로 구분해 입력하시오." />
             <TextBox Margin="5,0" Text="{Binding Workers}" />
 
             <TextBlock
@@ -63,15 +63,27 @@
                 Height="30"
                 Margin="5,10,5,5"
                 HorizontalAlignment="Center"
+                Command="{Binding CalculateCommand}"
                 Content="Let's go 👉👉👉"
                 FontSize="15" />
         </StackPanel>
-        <StackPanel Grid.Column="1">
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
             <TextBlock
+                Grid.Row="0"
                 Margin="5"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Output" />
-        </StackPanel>
+            <TextBox
+                Grid.Row="1"
+                AcceptsReturn="True"
+                Text="{Binding OutputText}"
+                TextWrapping="Wrap"
+                VerticalScrollBarVisibility="Visible" />
+        </Grid>
     </Grid>
 </Window>
