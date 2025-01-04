@@ -50,13 +50,29 @@
             <TextBlock
                 Margin="0,10,0,0"
                 FontWeight="Bold"
-                Text="휴무일" />
-            <TextBlock Margin="5" Text="좋다. 이제 캘린더에서 휴무일을 선택해보자." />
-            <TextBox Margin="5" Text="{Binding SelectedDates.Count}" />
+                Text="{Binding Holidays}" />
+            <TextBlock Margin="5,5,5,0" Text="매주 수요일" />
+            <TextBox
+                MaxHeight="100"
+                Margin="5"
+                Text="{Binding EveryWednesdays}"
+                VerticalScrollBarVisibility="Auto" />
+            <TextBlock Margin="5,5,5,0" Text="마지막 일요일" />
+            <TextBox
+                MaxHeight="100"
+                Margin="5"
+                Text="{Binding LastSundays}"
+                VerticalScrollBarVisibility="Auto" />
+            <TextBlock Margin="5,5,5,0" Text="그 외 휴무일은 아래 캘린더에서 직접 눌러주도록 하자" />
+            <TextBox
+                MaxHeight="100"
+                Margin="5"
+                Text="{Binding CustomHolidays}"
+                VerticalScrollBarVisibility="Auto" />
             <Calendar
                 Margin="5,0"
                 HorizontalAlignment="Left"
-                SelectedDate="{Binding SelectedDates}"
+                SelectedDate="{Binding SelectedCustomDate}"
                 SelectionMode="MultipleRange" />
             <Button
                 Width="140"
