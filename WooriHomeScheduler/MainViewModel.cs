@@ -73,12 +73,7 @@ namespace WooriHomeScheduler
         [RelayCommand]
         private void Calculate()
         {
-            List<DateTime> holidays = [
-                DateTime.Parse("2025-01-06"),
-                DateTime.Parse("2025-01-07"),
-                DateTime.Parse("2025-01-08"),
-                DateTime.Parse("2025-01-13"),
-            ];
+            var holidays = GetWednesdays(StartDate, EndDate).Concat(GetLastSundays(StartDate, EndDate)).Concat(_customHolidayList).ToList();
             var schedule = ScheduleGenerator.Generate(StartDate, EndDate, Workers.Split(' ').ToList(), holidays);
 
             OutputText = "";
@@ -98,7 +93,10 @@ namespace WooriHomeScheduler
             LastSundays = string.Join("\n", s.Select(d => d.ToString("yyyy-MM-dd")));
             CustomHolidays = string.Join("\n", c.Select(d => d.ToString("yyyy-MM-dd")));
 
-            Holidays = $"휴무일 : {w.Count+s.Count+c.Count}일";
+            List<DateTime> allHolidays = w.Concat(s).Concat(c).ToList();
+            allHolidays = allHolidays.Distinct().ToList();
+
+            Holidays = $"휴무일 : {allHolidays.Count}일";
         }
 
         static List<DateTime> GetLastSundays(DateTime start, DateTime end)

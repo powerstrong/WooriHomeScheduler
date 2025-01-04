@@ -16,8 +16,7 @@
 
             foreach (var day in days)
             {
-                // 매주 수요일 또는 지정된 휴일인 경우 스킵
-                if (day.DayOfWeek == DayOfWeek.Wednesday || holidays.Contains(day) || IsLastSunday(day))
+                if (holidays.Contains(day))
                 {
                     continue;
                 }
@@ -41,13 +40,6 @@
             DistributeRemainingWorkers(schedule, workers, startDate, endDate, holidays, DayOfWeek.Monday);
 
             return schedule;
-        }
-
-        private static bool IsLastSunday(DateTime date)
-        {
-            // 마지막 일요일인지 확인
-            return date.DayOfWeek == DayOfWeek.Sunday &&
-                   date.AddDays(7).Month != date.Month;
         }
 
         private static void DistributeRemainingWorkers(
