@@ -76,10 +76,23 @@ namespace WooriHomeScheduler
             var holidays = GetWednesdays(StartDate, EndDate).Concat(GetLastSundays(StartDate, EndDate)).Concat(_customHolidayList).ToList();
             var schedule = ScheduleGenerator.Generate(StartDate, EndDate, Workers.Split(' ').ToList(), holidays);
 
-            OutputText = "";
-            foreach (var dayTable in schedule)
+            // 기간 중 수요일이 아닌 휴일 구하기
+            var nonWednesdayHolidays = holidays.Where(date => date.DayOfWeek != DayOfWeek.Wednesday).ToList();
+            OutputText = $"근무일 : {(EndDate-StartDate).Days+1-holidays.Count}일, 수요일이 아닌 휴무일 : {nonWednesdayHolidays.Count}일\n";
+            OutputText += $"근무 = (근무일+수요일이 아닌 휴무일) * 4 = {((EndDate - StartDate).Days + 1 - holidays.Count + nonWednesdayHolidays.Count) * 4}\n";
+            OutputText += "근무배치 우선순위 : 토월목화금일\n";
+            OutputText += "------------------------------------------------------\n";
+
+            for (var day = StartDate.Date; day <= EndDate.Date; day = day.AddDays(1))
             {
-                OutputText += $"{dayTable.Key.ToString("yyyy-MM-dd")} : {string.Join(", ", dayTable.Value)}\n";
+                if (schedule.ContainsKey(day))
+                {
+                    OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")}[{schedule[day].Count}] : {string.Join(", ", schedule[day])}\n";
+                }
+                else
+                {
+                    OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")} : 휴무일\n";
+                }
             }
         }
 
@@ -89,9 +102,9 @@ namespace WooriHomeScheduler
             var s = GetLastSundays(StartDate, EndDate);
             var c = _customHolidayList;
 
-            EveryWednesdays = string.Join("\n", w.Select(d => d.ToString("yyyy-MM-dd")));
-            LastSundays = string.Join("\n", s.Select(d => d.ToString("yyyy-MM-dd")));
-            CustomHolidays = string.Join("\n", c.Select(d => d.ToString("yyyy-MM-dd")));
+            EveryWednesdays = string.Join("\n", w.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
+            LastSundays = string.Join("\n", s.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
+            CustomHolidays = string.Join("\n", c.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
 
             List<DateTime> allHolidays = w.Concat(s).Concat(c).ToList();
             allHolidays = allHolidays.Distinct().ToList();

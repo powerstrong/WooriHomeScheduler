@@ -1,78 +1,88 @@
-﻿namespace WooriHomeScheduler
+﻿using System.Windows.Controls;
+
+namespace WooriHomeScheduler
 {
     public class ScheduleGenerator
     {
         public static Dictionary<DateTime, List<string>> Generate(
-            DateTime startDate,
-            DateTime endDate,
-            List<string> workers,
-            List<DateTime> holidays)
+        DateTime startDate,
+        DateTime endDate,
+        List<string> workers,
+        List<DateTime> holidays)
         {
             var schedule = new Dictionary<DateTime, List<string>>();
-            var random = new Random();
-            var days = Enumerable.Range(0, (endDate - startDate).Days + 1)
-                                 .Select(offset => startDate.AddDays(offset));
-            var remainingWorkers = new List<string>(workers);
-
-            foreach (var day in days)
+            var workerQueue = new Queue<string>(workers);
+            //var additionalWorkersQueue = new Queue<string>(workers);
+            
+            Dictionary<string, int> workerCount = [];
+            foreach (var worker in workers)
             {
-                if (holidays.Contains(day))
+                workerCount[worker] = 0;
+            }
+
+            // 근무배치 우선순위 : 토월목화금일
+            List<DateTime> eachDays = EachDay(startDate, endDate).ToList();
+            List<DateTime> workDays = new();
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Saturday));
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Monday));
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Thursday));
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Tuesday));
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Friday));
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Sunday));
+
+            // 기본배치 가즈아
+            foreach (var day in workDays)
+            {
+                if (holidays.Contains(day)) continue;
+                schedule[day] = new List<string>();
+
+                while (schedule[day].Count < 4)
                 {
-                    continue;
-                }
+                    var worker = workerQueue.Dequeue();
+                    workerCount[worker]++;
 
-                // 근무자 4명을 랜덤 배치
-                var todayWorkers = remainingWorkers.OrderBy(_ => random.Next()).Take(4).ToList();
-                schedule[day] = todayWorkers;
-
-                // 배정된 근무자 제거
-                remainingWorkers.RemoveAll(w => todayWorkers.Contains(w));
-
-                // 모든 근무자가 배정되었다면 다시 초기화
-                if (remainingWorkers.Count < 4)
-                {
-                    remainingWorkers = new List<string>(workers);
+                    schedule[day].Add($"{worker}({workerCount[worker]})");
+                    workerQueue.Enqueue(worker);
                 }
             }
 
-            // 추가 배치 처리
-            DistributeRemainingWorkers(schedule, workers, startDate, endDate, holidays, DayOfWeek.Saturday);
-            DistributeRemainingWorkers(schedule, workers, startDate, endDate, holidays, DayOfWeek.Monday);
+            // 추가 배치
+            //var additionalDays = holidays.Count(h => h.DayOfWeek != DayOfWeek.Wednesday) * 4;
+            //foreach (var day in EachDay(startDate, endDate).Where(d => weekdays.Contains(d.DayOfWeek)))
+            //{
+            //    if (additionalDays == 0) break;
+
+            //    if (!schedule.ContainsKey(day))
+            //    {
+            //        schedule[day] = new List<string>();
+            //    }
+
+            //    if (schedule[day].Count < 5)
+            //    {
+            //        var additionalWorker = additionalWorkersQueue.Dequeue();
+            //        if (!workerCount.ContainsKey(additionalWorker)) workerCount[additionalWorker] = 0;
+            //        workerCount[additionalWorker]++;
+
+            //        if (!schedule[day].Contains(additionalWorker))
+            //        {
+            //            schedule[day].Add($"{additionalWorker}({workerCount[additionalWorker]})");
+            //            additionalWorkersQueue.Enqueue(additionalWorker);
+            //            additionalDays--;
+            //        }
+            //        else
+            //        {
+            //            additionalWorkersQueue.Enqueue(additionalWorker);
+            //        }
+            //    }
+            //}
 
             return schedule;
         }
 
-        private static void DistributeRemainingWorkers(
-            Dictionary<DateTime, List<string>> schedule,
-            List<string> workers,
-            DateTime startDate,
-            DateTime endDate,
-            List<DateTime> holidays,
-            DayOfWeek targetDay)
+        private static IEnumerable<DateTime> EachDay(DateTime from, DateTime to)
         {
-            var random = new Random();
-            var days = Enumerable.Range(0, (endDate - startDate).Days + 1)
-                                 .Select(offset => startDate.AddDays(offset))
-                                 .Where(day => day.DayOfWeek == targetDay &&
-                                               !holidays.Contains(day) &&
-                                               !schedule.ContainsKey(day))
-                                 .ToList();
-
-            var workerCounts = workers.ToDictionary(w => w, w => 0);
-
-            foreach (var day in days)
-            {
-                var availableWorkers = workers.OrderBy(w => workerCounts[w])
-                                              .ThenBy(_ => random.Next())
-                                              .Take(1)
-                                              .ToList();
-
-                schedule[day] = availableWorkers;
-                foreach (var worker in availableWorkers)
-                {
-                    workerCounts[worker]++;
-                }
-            }
+            for (var day = from.Date; day <= to.Date; day = day.AddDays(1))
+                yield return day;
         }
     }
 
