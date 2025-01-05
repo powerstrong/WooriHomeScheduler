@@ -79,15 +79,22 @@ namespace WooriHomeScheduler
             // 기간 중 수요일이 아닌 휴일 구하기
             var nonWednesdayHolidays = holidays.Where(date => date.DayOfWeek != DayOfWeek.Wednesday).ToList();
             OutputText = $"근무일 : {(EndDate-StartDate).Days+1-holidays.Count}일, 수요일이 아닌 휴무일 : {nonWednesdayHolidays.Count}일\n";
-            OutputText += $"근무 = (근무일+수요일이 아닌 휴무일) * 4 = {((EndDate - StartDate).Days + 1 - holidays.Count + nonWednesdayHolidays.Count) * 4}\n";
+            OutputText += $"근무 : (근무일+수요일이 아닌 휴무일) * 4 = {((EndDate - StartDate).Days + 1 - holidays.Count + nonWednesdayHolidays.Count) * 4}\n";
             OutputText += "근무배치 우선순위 : 토월목화금일\n";
-            OutputText += "------------------------------------------------------\n";
+            OutputText += "-----------------------------------------------------------\n";
 
             for (var day = StartDate.Date; day <= EndDate.Date; day = day.AddDays(1))
             {
                 if (schedule.ContainsKey(day))
                 {
-                    OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")}[{schedule[day].Count}] : {string.Join(", ", schedule[day])}\n";
+                    OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")}[{schedule[day].Count}] : ";
+
+                    var workers = schedule[day];
+                    foreach (var worker in workers)
+                    {
+                        OutputText += $"{worker.Item1}({worker.Item2}), ";
+                    }
+                    OutputText += "\n";
                 }
                 else
                 {
