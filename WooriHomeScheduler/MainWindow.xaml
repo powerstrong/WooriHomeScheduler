@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="우리홈치과 스케줄러"
     Width="1000"
-    Height="800"
+    Height="1000"
     mc:Ignorable="d">
     <Window.DataContext>
         <local:MainViewModel />
@@ -63,17 +63,38 @@
                 Margin="5"
                 Text="{Binding LastSundays}"
                 VerticalScrollBarVisibility="Auto" />
-            <TextBlock Margin="5,5,5,0" Text="그 외 휴무일은 아래 캘린더에서 직접 눌러주도록 하자" />
-            <TextBox
-                MaxHeight="100"
-                Margin="5"
-                Text="{Binding CustomHolidays}"
-                VerticalScrollBarVisibility="Auto" />
-            <Calendar
-                Margin="5,0"
-                HorizontalAlignment="Left"
-                SelectedDate="{Binding SelectedCustomDate}"
-                SelectionMode="MultipleRange" />
+            <GroupBox Header="그 외 휴무일은 아래 캘린더에서 직접 눌러주도록 하자">
+                <StackPanel>
+                    <Calendar
+                        Margin="5,0"
+                        HorizontalAlignment="Left"
+                        SelectedDate="{Binding SelectedCustomDate}"
+                        SelectionMode="MultipleRange" />
+                    <ListView
+                        MaxHeight="200"
+                        Margin="10"
+                        ItemsSource="{Binding CustomHolidays}">
+                        <ListView.View>
+                            <GridView>
+                                <!--  텍스트 열  -->
+                                <GridViewColumn
+                                    Width="200"
+                                    DisplayMemberBinding="{Binding DateString}"
+                                    Header="Date" />
+                                <!--  체크박스 열  -->
+                                <GridViewColumn Width="200" Header="근무일수를 늘리지 않는 휴일?">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsFree}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+            </GroupBox>
+
             <Button
                 Width="140"
                 Height="30"

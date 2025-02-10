@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WooriHomeScheduler.Models;
+using WooriHomeScheduler.Services;
 
 namespace WooriHomeScheduler
 {
@@ -16,6 +18,17 @@ namespace WooriHomeScheduler
 
         [ObservableProperty]
         private DateTime startDate = DateTime.Now;
+
+        private ObservableCollection<CustomHolidayModel> _customHolidays = new();
+        public ObservableCollection<CustomHolidayModel> CustomHolidays
+        {
+            get => _customHolidays;
+            set
+            {
+                _customHolidays = value;
+                OnPropertyChanged();
+            }
+        }
 
         partial void OnStartDateChanged(DateTime oldValue, DateTime newValue)
         {
@@ -47,10 +60,19 @@ namespace WooriHomeScheduler
 
         partial void OnSelectedCustomDateChanged(DateTime oldValue, DateTime newValue)
         {
-            if (_customHolidayList.Contains(newValue))
-                _customHolidayList.Remove(newValue);
+            // 컬렉션에서 newValue와 같은 날짜가 있는지 확인
+            var existingItem = CustomHolidays.FirstOrDefault(item => item.Date.Date == newValue.Date);
+
+            if (existingItem != null)
+            {
+                // 이미 존재하면 컬렉션에서 제거
+                CustomHolidays.Remove(existingItem);
+            }
             else
-                _customHolidayList.Add(newValue);
+            {
+                // 존재하지 않으면 새로운 항목 추가
+                CustomHolidays.Add(new CustomHolidayModel(newValue, false));
+            }
 
             UpdateHolidays();
         }
@@ -64,8 +86,8 @@ namespace WooriHomeScheduler
         [ObservableProperty]
         private string lastSundays = "";
 
-        [ObservableProperty]
-        private string customHolidays = "";
+        //[ObservableProperty]
+        //private string customHolidays = "";
 
         [ObservableProperty]
         private string outputText = "";
@@ -111,7 +133,7 @@ namespace WooriHomeScheduler
 
             EveryWednesdays = string.Join("\n", w.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
             LastSundays = string.Join("\n", s.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
-            CustomHolidays = string.Join("\n", c.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
+            //CustomHolidays = string.Join("\n", c.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
 
             List<DateTime> allHolidays = w.Concat(s).Concat(c).ToList();
             allHolidays = allHolidays.Distinct().ToList();

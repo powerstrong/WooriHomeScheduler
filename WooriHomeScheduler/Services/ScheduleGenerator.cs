@@ -1,20 +1,16 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace WooriHomeScheduler
+namespace WooriHomeScheduler.Services
 {
     public class ScheduleGenerator
     {
-        public static Dictionary<DateTime, List<(string, int)>> Generate(
-        DateTime startDate,
-        DateTime endDate,
-        List<string> workers,
-        List<DateTime> holidays)
+        public static Dictionary<DateTime, List<(string, int)>> Generate(DateTime startDate, DateTime endDate, List<string> workers, List<DateTime> holidays)
         {
             var schedule = new Dictionary<DateTime, List<(string, int)>>();
             var workerQueue = new Queue<string>(workers);
             //var additionalWorkersQueue = new Queue<string>(workers);
-            
+
             Dictionary<string, int> workerCount = [];
             foreach (var worker in workers)
             {
@@ -35,7 +31,7 @@ namespace WooriHomeScheduler
             foreach (var day in workDays)
             {
                 if (holidays.Contains(day)) continue;
-                schedule[day] = new List<(string,int)>();
+                schedule[day] = new List<(string, int)>();
 
                 while (schedule[day].Count < 4)
                 {
