@@ -30,6 +30,17 @@ namespace WooriHomeScheduler
             }
         }
 
+        private ObservableCollection<CustomWorkdayModel> _customWorkdays = new();
+        public ObservableCollection<CustomWorkdayModel> CustomWorkdays
+        {
+            get => _customWorkdays;
+            set
+            {
+                _customWorkdays = value;
+                OnPropertyChanged();
+            }
+        }
+
         partial void OnStartDateChanged(DateTime oldValue, DateTime newValue)
         {
             if (EndDate < newValue)
@@ -54,11 +65,11 @@ namespace WooriHomeScheduler
         }
 
         [ObservableProperty]
-        private DateTime selectedCustomDate;
+        private DateTime selectedHoliDate;
 
         private List<DateTime> _customHolidayList = new();
 
-        partial void OnSelectedCustomDateChanged(DateTime oldValue, DateTime newValue)
+        partial void OnSelectedHoliDateChanged(DateTime oldValue, DateTime newValue)
         {
             // 컬렉션에서 newValue와 같은 날짜가 있는지 확인
             var existingItem = CustomHolidays.FirstOrDefault(item => item.Date.Date == newValue.Date);
@@ -75,6 +86,46 @@ namespace WooriHomeScheduler
             }
 
             UpdateHolidays();
+        }
+
+        [ObservableProperty]
+        private DateTime selectedWorkDate;
+
+        partial void OnSelectedWorkDateChanged(DateTime oldValue, DateTime newValue)
+        {
+            // 컬렉션에서 newValue와 같은 날짜가 있는지 확인
+            var existingItem = CustomWorkdays.FirstOrDefault(item => item.Date.Date == newValue.Date);
+
+            if (existingItem != null)
+            {
+                // 이미 존재하면 컬렉션에서 제거
+                CustomWorkdays.Remove(existingItem);
+            }
+            else
+            {
+                // 존재하지 않으면 새로운 항목 추가
+                CustomWorkdays.Add(new CustomWorkdayModel(newValue, 4));
+            }
+
+            //UpdateWorkdays(); ???
+        }
+
+        [RelayCommand]
+        void DeleteHoliday(object parameter)
+        {
+            if (parameter is CustomHolidayModel item)
+            {
+                CustomHolidays.Remove(item);
+            }
+        }
+
+        [RelayCommand]
+        void DeleteWorkday(object parameter)
+        {
+            if (parameter is CustomWorkdayModel item)
+            {
+                CustomWorkdays.Remove(item);
+            }
         }
 
         [ObservableProperty]
@@ -129,11 +180,10 @@ namespace WooriHomeScheduler
         {
             var w = GetWednesdays(StartDate, EndDate);
             var s = GetLastSundays(StartDate, EndDate);
-            var c = _customHolidayList;
+            List<DateTime> c = CustomHolidays.Select(h => h.Date).ToList();
 
             EveryWednesdays = string.Join("\n", w.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
             LastSundays = string.Join("\n", s.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
-            //CustomHolidays = string.Join("\n", c.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
 
             List<DateTime> allHolidays = w.Concat(s).Concat(c).ToList();
             allHolidays = allHolidays.Distinct().ToList();
