@@ -67,8 +67,6 @@ namespace WooriHomeScheduler
         [ObservableProperty]
         private DateTime selectedHoliDate;
 
-        private List<DateTime> _customHolidayList = new();
-
         partial void OnSelectedHoliDateChanged(DateTime oldValue, DateTime newValue)
         {
             // 컬렉션에서 newValue와 같은 날짜가 있는지 확인
@@ -106,8 +104,6 @@ namespace WooriHomeScheduler
                 // 존재하지 않으면 새로운 항목 추가
                 CustomWorkdays.Add(new CustomWorkdayModel(newValue, 4));
             }
-
-            //UpdateWorkdays(); ???
         }
 
         [RelayCommand]
@@ -137,17 +133,18 @@ namespace WooriHomeScheduler
         [ObservableProperty]
         private string lastSundays = "";
 
-        //[ObservableProperty]
-        //private string customHolidays = "";
-
         [ObservableProperty]
         private string outputText = "";
 
         [RelayCommand]
         private void Calculate()
         {
-            var holidays = GetWednesdays(StartDate, EndDate).Concat(GetLastSundays(StartDate, EndDate)).Concat(_customHolidayList).ToList();
-            var schedule = ScheduleGenerator.Generate(StartDate, EndDate, Workers.Split(' ').ToList(), holidays);
+            List<DateTime> customHolidayDates = CustomHolidays.Select(h => h.Date).ToList();
+            int freeHolidayCount = CustomHolidays.Count(h => h.IsFree);
+            Dictionary<DateTime, int> customWorkdayDictionary = CustomWorkdays.ToDictionary(w => w.Date, w => w.WorkerCount);
+
+            var holidays = GetWednesdays(StartDate, EndDate).Concat(GetLastSundays(StartDate, EndDate)).Concat(customHolidayDates).ToList();
+            var schedule = ScheduleGenerator.Generate(StartDate, EndDate, Workers.Split(' ').ToList(), holidays, customWorkdayDictionary, freeHolidayCount);
 
             // 기간 중 수요일이 아닌 휴일 구하기
             var nonWednesdayHolidays = holidays.Where(date => date.DayOfWeek != DayOfWeek.Wednesday).ToList();

@@ -5,7 +5,7 @@ namespace WooriHomeScheduler.Services
 {
     public class ScheduleGenerator
     {
-        public static Dictionary<DateTime, List<(string, int)>> Generate(DateTime startDate, DateTime endDate, List<string> workers, List<DateTime> holidays)
+        public static Dictionary<DateTime, List<(string, int)>> Generate(DateTime startDate, DateTime endDate, List<string> workers, List<DateTime> holidays, Dictionary<DateTime, int> customWorkdays, int freeHolidayCount)
         {
             var schedule = new Dictionary<DateTime, List<(string, int)>>();
             var workerQueue = new Queue<string>(workers);
