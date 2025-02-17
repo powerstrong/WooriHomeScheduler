@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace WooriHomeScheduler.Services
@@ -33,7 +34,8 @@ namespace WooriHomeScheduler.Services
                 if (holidays.Contains(day)) continue;
                 schedule[day] = new List<(string, int)>();
 
-                while (schedule[day].Count < 4)
+                int baseWorkerCount = customWorkdays.ContainsKey(day) ? customWorkdays[day] : 4;
+                while (schedule[day].Count < baseWorkerCount)
                 {
                     var worker = workerQueue.Dequeue();
                     workerCount[worker]++;
@@ -44,8 +46,6 @@ namespace WooriHomeScheduler.Services
             }
 
             var nonWednesdayHolidays = holidays.Where(d => d.DayOfWeek != DayOfWeek.Wednesday).ToList();
-            var remainWork = nonWednesdayHolidays.Count * 4;
-
             if (schedule.Count < nonWednesdayHolidays.Count * 2)
             {
                 MessageBox.Show("너무 많이 쉰다");
@@ -57,6 +57,14 @@ namespace WooriHomeScheduler.Services
 
             Queue<DayOfWeek> dayPriorityQueue = new([DayOfWeek.Saturday, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Tuesday, DayOfWeek.Friday, DayOfWeek.Sunday]);
 
+            var remainWork = (nonWednesdayHolidays.Count - freeHolidayCount) * 4;
+
+            // custom workday 마진만큼 더 빼주도록 하자
+            var howManyCustomWorkDay = customWorkdays.Count;
+            var customWorkdayCount = customWorkdays.Values.Sum();
+            var customWorkdayMargin = customWorkdayCount - howManyCustomWorkDay * 4;
+            remainWork -= customWorkdayMargin;
+
             while (remainWork > 0)
             {
                 var day = dayPriorityQueue.Dequeue();
@@ -67,6 +75,7 @@ namespace WooriHomeScheduler.Services
                 foreach (var workDay in extraWork)
                 {
                     if (holidays.Contains(workDay)) continue;
+                    if (customWorkdays.ContainsKey(workDay)) continue;
 
                     bool done = false;
                     while (done == false) // 기존 4명 + 추가 1명으로 5명까지 배치

@@ -14,7 +14,7 @@ namespace WooriHomeScheduler
     partial class MainViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string workers = "장원영 안유진 레이 이서 가을 리즈";
+        private string workers = "AAA BBB CCC DDD EEE FFF";
 
         [ObservableProperty]
         private DateTime startDate = DateTime.Now;
@@ -139,12 +139,19 @@ namespace WooriHomeScheduler
         [RelayCommand]
         private void Calculate()
         {
+            List<string> workers = Workers.Split(' ').ToList();
             List<DateTime> customHolidayDates = CustomHolidays.Select(h => h.Date).ToList();
             int freeHolidayCount = CustomHolidays.Count(h => h.IsFree);
             Dictionary<DateTime, int> customWorkdayDictionary = CustomWorkdays.ToDictionary(w => w.Date, w => w.WorkerCount);
 
+            if (customWorkdayDictionary.Values.Any(count => count > workers.Count))
+            {
+                OutputText = "근무자 수보다 많은 근무자가 배치되어 있습니다.";
+                return;
+            }
+
             var holidays = GetWednesdays(StartDate, EndDate).Concat(GetLastSundays(StartDate, EndDate)).Concat(customHolidayDates).ToList();
-            var schedule = ScheduleGenerator.Generate(StartDate, EndDate, Workers.Split(' ').ToList(), holidays, customWorkdayDictionary, freeHolidayCount);
+            var schedule = ScheduleGenerator.Generate(StartDate, EndDate, workers, holidays, customWorkdayDictionary, freeHolidayCount);
 
             // 기간 중 수요일이 아닌 휴일 구하기
             var nonWednesdayHolidays = holidays.Where(date => date.DayOfWeek != DayOfWeek.Wednesday).ToList();
@@ -159,11 +166,13 @@ namespace WooriHomeScheduler
                 {
                     OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")}[{schedule[day].Count}] : ";
 
-                    var workers = schedule[day];
-                    foreach (var worker in workers)
+                    var workersOfDay = schedule[day];
+                    foreach (var worker in workersOfDay)
                     {
                         OutputText += $"{worker.Item1}({worker.Item2}), ";
                     }
+
+                    OutputText = OutputText.Remove(OutputText.Length - 2);
                     OutputText += "\n";
                 }
                 else
