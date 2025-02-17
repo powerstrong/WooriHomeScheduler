@@ -6,8 +6,8 @@
     xmlns:local="clr-namespace:WooriHomeScheduler"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="우리홈치과 스케줄러"
-    Width="1000"
-    Height="800"
+    Width="1550"
+    Height="1000"
     mc:Ignorable="d">
     <Window.DataContext>
         <local:MainViewModel />
@@ -16,14 +16,15 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0" Margin="3">
+        <StackPanel Grid.Column="0" Margin="3,0">
             <TextBlock
                 Margin="5"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="Input" />
+                Text="✨ Input" />
             <TextBlock
                 Margin="0,10,0,0"
                 FontWeight="Bold"
@@ -51,29 +52,110 @@
                 Margin="0,10,0,0"
                 FontWeight="Bold"
                 Text="{Binding Holidays}" />
-            <TextBlock Margin="5,5,5,0" Text="매주 수요일" />
-            <TextBox
-                MaxHeight="100"
-                Margin="5"
-                Text="{Binding EveryWednesdays}"
-                VerticalScrollBarVisibility="Auto" />
-            <TextBlock Margin="5,5,5,0" Text="마지막 일요일" />
-            <TextBox
-                MaxHeight="100"
-                Margin="5"
-                Text="{Binding LastSundays}"
-                VerticalScrollBarVisibility="Auto" />
-            <TextBlock Margin="5,5,5,0" Text="그 외 휴무일은 아래 캘린더에서 직접 눌러주도록 하자" />
-            <TextBox
-                MaxHeight="100"
-                Margin="5"
-                Text="{Binding CustomHolidays}"
-                VerticalScrollBarVisibility="Auto" />
-            <Calendar
-                Margin="5,0"
-                HorizontalAlignment="Left"
-                SelectedDate="{Binding SelectedCustomDate}"
-                SelectionMode="MultipleRange" />
+            <GroupBox Margin="0,10,0,0" Header="자동계산 휴무일">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Margin="5,5,5,0" Text="매주 수요일" />
+                        <TextBox
+                            MaxHeight="100"
+                            Margin="5"
+                            Text="{Binding EveryWednesdays}"
+                            VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Margin="5,5,5,0" Text="마지막 일요일" />
+                        <TextBox
+                            MaxHeight="100"
+                            Margin="5"
+                            Text="{Binding LastSundays}"
+                            VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+            <GroupBox Margin="0,5" Header="커스텀 휴무일">
+                <StackPanel Orientation="Horizontal">
+                    <Calendar
+                        Margin="5,0"
+                        HorizontalAlignment="Left"
+                        SelectedDate="{Binding SelectedHoliDate}"
+                        SelectionMode="MultipleRange" />
+                    <ListView
+                        MaxHeight="160"
+                        Margin="10"
+                        ItemsSource="{Binding CustomHolidays}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn
+                                    Width="120"
+                                    DisplayMemberBinding="{Binding DateString}"
+                                    Header="날짜" />
+                                <GridViewColumn Width="120" Header="신난다 무료휴일">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsFree}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="40" Header="X">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button
+                                                Command="{Binding DataContext.DeleteHolidayCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                CommandParameter="{Binding}"
+                                                Content="삭제" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Margin="0,5" Header="커스텀 근무일 (휴무일과 중복체크 기능을 기대하지 마십시오)">
+                <StackPanel Orientation="Horizontal">
+                    <Calendar
+                        Margin="5,0"
+                        HorizontalAlignment="Left"
+                        SelectedDate="{Binding SelectedWorkDate}"
+                        SelectionMode="MultipleRange" />
+                    <ListView
+                        MaxHeight="160"
+                        Margin="10"
+                        ItemsSource="{Binding CustomWorkdays}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn
+                                    Width="120"
+                                    DisplayMemberBinding="{Binding DateString}"
+                                    Header="날짜" />
+                                <GridViewColumn Width="120" Header="근무자수">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Width="50" Text="{Binding WorkerCount}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="40" Header="X">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button
+                                                Command="{Binding DataContext.DeleteWorkdayCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                CommandParameter="{Binding}"
+                                                Content="삭제" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+            </GroupBox>
+
             <Button
                 Width="140"
                 Height="30"
@@ -93,11 +175,31 @@
                 Margin="5"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="Output" />
+                Text="🏥 Output" />
             <TextBox
                 Grid.Row="1"
+                Margin="5"
                 AcceptsReturn="True"
                 Text="{Binding OutputText}"
+                TextWrapping="Wrap"
+                VerticalScrollBarVisibility="Visible" />
+        </Grid>
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                Margin="5"
+                FontSize="20"
+                FontWeight="Bold"
+                Text="📊 Statistics" />
+            <TextBox
+                Grid.Row="1"
+                Margin="5"
+                AcceptsReturn="True"
+                Text="{Binding StatisticText}"
                 TextWrapping="Wrap"
                 VerticalScrollBarVisibility="Visible" />
         </Grid>

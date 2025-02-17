@@ -1,20 +1,17 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 
-namespace WooriHomeScheduler
+namespace WooriHomeScheduler.Services
 {
     public class ScheduleGenerator
     {
-        public static Dictionary<DateTime, List<(string, int)>> Generate(
-        DateTime startDate,
-        DateTime endDate,
-        List<string> workers,
-        List<DateTime> holidays)
+        public static Dictionary<DateTime, List<(string, int)>> Generate(DateTime startDate, DateTime endDate, List<string> workers, List<DateTime> holidays, Dictionary<DateTime, int> customWorkdays, int freeHolidayCount)
         {
             var schedule = new Dictionary<DateTime, List<(string, int)>>();
             var workerQueue = new Queue<string>(workers);
             //var additionalWorkersQueue = new Queue<string>(workers);
-            
+
             Dictionary<string, int> workerCount = [];
             foreach (var worker in workers)
             {
@@ -35,9 +32,10 @@ namespace WooriHomeScheduler
             foreach (var day in workDays)
             {
                 if (holidays.Contains(day)) continue;
-                schedule[day] = new List<(string,int)>();
+                schedule[day] = new List<(string, int)>();
 
-                while (schedule[day].Count < 4)
+                int baseWorkerCount = customWorkdays.ContainsKey(day) ? customWorkdays[day] : 4;
+                while (schedule[day].Count < baseWorkerCount)
                 {
                     var worker = workerQueue.Dequeue();
                     workerCount[worker]++;
@@ -48,18 +46,24 @@ namespace WooriHomeScheduler
             }
 
             var nonWednesdayHolidays = holidays.Where(d => d.DayOfWeek != DayOfWeek.Wednesday).ToList();
-            var remainWork = nonWednesdayHolidays.Count * 4;
-
             if (schedule.Count < nonWednesdayHolidays.Count * 2)
             {
                 MessageBox.Show("너무 많이 쉰다");
                 return schedule;
             }
 
-            // 토요일 근무가 적은 사람부터 들어가세요
-            var additionalWorkersQueue = new Queue<string>(GetWorkersSortedBySaturdayCount(schedule, workers));
+            //// 토요일 근무가 적은 사람부터 들어가세요
+            //var additionalWorkersQueue = new Queue<string>(GetWorkersSortedBySaturdayCount(schedule, workers));
 
             Queue<DayOfWeek> dayPriorityQueue = new([DayOfWeek.Saturday, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Tuesday, DayOfWeek.Friday, DayOfWeek.Sunday]);
+
+            var remainWork = (nonWednesdayHolidays.Count - freeHolidayCount) * 4;
+
+            // custom workday 마진만큼 더 빼주도록 하자
+            var howManyCustomWorkDay = customWorkdays.Count;
+            var customWorkdayCount = customWorkdays.Values.Sum();
+            var customWorkdayMargin = customWorkdayCount - howManyCustomWorkDay * 4;
+            remainWork -= customWorkdayMargin;
 
             while (remainWork > 0)
             {
@@ -70,7 +74,11 @@ namespace WooriHomeScheduler
 
                 foreach (var workDay in extraWork)
                 {
+                    // 현재 근무 수가 가장 적은 수로 정렬
+                    var additionalWorkersQueue = new Queue<string>(workers.OrderBy(worker => workerCount[worker]));
+
                     if (holidays.Contains(workDay)) continue;
+                    if (customWorkdays.ContainsKey(workDay)) continue;
 
                     bool done = false;
                     while (done == false) // 기존 4명 + 추가 1명으로 5명까지 배치
