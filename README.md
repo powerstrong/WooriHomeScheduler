@@ -3,9 +3,9 @@
 ### input
 * 근무 시작일, 종료일
 * 근무 인원
-* 휴무일
+* 커스텀 휴무일, 커스텀 근무일
 ### output
-일단 4명씩 하는데... 그 주에 쉬는 날이 있으면 다른 날에 일을 더 하는?? 부터 기억이 가물가물
+* 근무표
+* 통계표
 ### demo
-https://github.com/user-attachments/assets/6c98aab5-8e57-465f-9e55-a0f84062aaf1
-
+https://github.com/user-attachments/assets/a38eedce-1376-4315-aa03-4c01f5039d2f
