@@ -165,11 +165,11 @@ namespace WooriHomeScheduler
             StatisticText += " - 근무배치 우선순위 : 토월목화금일\n";
             StatisticText += "\n";
             StatisticText += "<추가배치>\n";
-            StatisticText += " - (공짜 휴일, 수요일)이 아닌 휴무일을 세서 x4를 합니다.\n";
+            StatisticText += " - 추가근무 = {(공짜 휴일, 수요일)이 아닌 휴무일} x4\n";
             StatisticText += " - 커스텀 근무일이 있으면 마진만큼 빼줍니다. (6명 일했다? -2명 ㄱㄱ)\n";
             StatisticText += " - 근무가 적은 사람 순으로, 추가근무 수만큼 들어가기 시작합니다.\n";
             StatisticText += "\n";
-            StatisticText += "<통계>\n";
+            StatisticText += "<인원별 통계>\n";
 
             // 근무자별, 요일별 근무 시간을 통계로 작성한다
             var workerCount = workers.ToDictionary(worker => worker, worker => 0);
@@ -211,8 +211,17 @@ namespace WooriHomeScheduler
                 StatisticText += "\n";
             }
 
-            //StatisticText += $" - 근무일 : {(EndDate-StartDate).Days+1-holidays.Count}일, 수요일이 아닌 휴무일 : {nonWednesdayHolidays.Count}일\n";
-            //StatisticText += $" - 근무 : (근무일+수요일이 아닌 휴무일) * 4 = {((EndDate - StartDate).Days + 1 - holidays.Count + nonWednesdayHolidays.Count) * 4}\n";
+            // 전체 기간 날짜 수
+            StatisticText += "\n<기타등등 통계>\n";
+            StatisticText += $" - 기간 : {StartDate.ToString("yyyy-MM-dd(ddd)")} ~ {EndDate.ToString("yyyy-MM-dd(ddd)")}, 총 {(EndDate - StartDate).Days + 1}일\n";
+
+            // 기간 내 근무일, 휴무일 통계
+            StatisticText += $" - 근무일 : {schedule.Count}일\n";
+            StatisticText += $" - 휴무일 : {holidays.Count}일\n";
+
+            // 전체 근무 수
+            StatisticText += $" - 총 근무 수 : {workerCount.Values.Sum()}회\n";
+
 
             for (var day = StartDate.Date; day <= EndDate.Date; day = day.AddDays(1))
             {
