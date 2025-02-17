@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:WooriHomeScheduler"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="우리홈치과 스케줄러"
-    Width="1100"
+    Width="1550"
     Height="1000"
     mc:Ignorable="d">
     <Window.DataContext>
@@ -14,6 +14,7 @@
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -177,8 +178,28 @@
                 Text="Output" />
             <TextBox
                 Grid.Row="1"
+                Margin="5"
                 AcceptsReturn="True"
                 Text="{Binding OutputText}"
+                TextWrapping="Wrap"
+                VerticalScrollBarVisibility="Visible" />
+        </Grid>
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                Margin="5"
+                FontSize="20"
+                FontWeight="Bold"
+                Text="Statistics" />
+            <TextBox
+                Grid.Row="1"
+                Margin="5"
+                AcceptsReturn="True"
+                Text="{Binding StatisticText}"
                 TextWrapping="Wrap"
                 VerticalScrollBarVisibility="Visible" />
         </Grid>

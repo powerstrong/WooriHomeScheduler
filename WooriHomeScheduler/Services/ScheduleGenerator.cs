@@ -52,8 +52,8 @@ namespace WooriHomeScheduler.Services
                 return schedule;
             }
 
-            // 토요일 근무가 적은 사람부터 들어가세요
-            var additionalWorkersQueue = new Queue<string>(GetWorkersSortedBySaturdayCount(schedule, workers));
+            //// 토요일 근무가 적은 사람부터 들어가세요
+            //var additionalWorkersQueue = new Queue<string>(GetWorkersSortedBySaturdayCount(schedule, workers));
 
             Queue<DayOfWeek> dayPriorityQueue = new([DayOfWeek.Saturday, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Tuesday, DayOfWeek.Friday, DayOfWeek.Sunday]);
 
@@ -74,6 +74,9 @@ namespace WooriHomeScheduler.Services
 
                 foreach (var workDay in extraWork)
                 {
+                    // 현재 근무 수가 가장 적은 수로 정렬
+                    var additionalWorkersQueue = new Queue<string>(workers.OrderBy(worker => workerCount[worker]));
+
                     if (holidays.Contains(workDay)) continue;
                     if (customWorkdays.ContainsKey(workDay)) continue;
 

@@ -136,9 +136,14 @@ namespace WooriHomeScheduler
         [ObservableProperty]
         private string outputText = "";
 
+        [ObservableProperty]
+        private string statisticText = "";
+
         [RelayCommand]
         private void Calculate()
         {
+            OutputText = StatisticText = string.Empty;
+
             List<string> workers = Workers.Split(' ').ToList();
             List<DateTime> customHolidayDates = CustomHolidays.Select(h => h.Date).ToList();
             int freeHolidayCount = CustomHolidays.Count(h => h.IsFree);
@@ -155,10 +160,59 @@ namespace WooriHomeScheduler
 
             // 기간 중 수요일이 아닌 휴일 구하기
             var nonWednesdayHolidays = holidays.Where(date => date.DayOfWeek != DayOfWeek.Wednesday).ToList();
-            OutputText = $"근무일 : {(EndDate-StartDate).Days+1-holidays.Count}일, 수요일이 아닌 휴무일 : {nonWednesdayHolidays.Count}일\n";
-            OutputText += $"근무 : (근무일+수요일이 아닌 휴무일) * 4 = {((EndDate - StartDate).Days + 1 - holidays.Count + nonWednesdayHolidays.Count) * 4}\n";
-            OutputText += "근무배치 우선순위 : 토월목화금일\n";
-            OutputText += "-----------------------------------------------------------\n";
+            StatisticText += "<기본배치>\n";
+            StatisticText += " - 먼저 각 근무일마다 4명씩, 또는 커스텀 근무자수만큼을 돌아가며 배치합니다.\n";
+            StatisticText += " - 근무배치 우선순위 : 토월목화금일\n";
+            StatisticText += "\n";
+            StatisticText += "<추가배치>\n";
+            StatisticText += " - (공짜 휴일, 수요일)이 아닌 휴무일을 세서 x4를 합니다.\n";
+            StatisticText += " - 커스텀 근무일이 있으면 마진만큼 빼줍니다. (6명 일했다? -2명 ㄱㄱ)\n";
+            StatisticText += " - 근무가 적은 사람 순으로, 추가근무 수만큼 들어가기 시작합니다.\n";
+            StatisticText += "\n";
+            StatisticText += "<통계>\n";
+
+            // 근무자별, 요일별 근무 시간을 통계로 작성한다
+            var workerCount = workers.ToDictionary(worker => worker, worker => 0);
+            var workerDayCount = workers.ToDictionary(worker => worker, worker => 0);
+            var workerDayOfWeekCount = workers.ToDictionary(worker => worker, worker => new Dictionary<DayOfWeek, int>());
+
+            // StatisticText에 근무자별 근무 횟수를 출력한다
+            Dictionary<DayOfWeek, string> dictEnglishDayToKoreanDay = new()
+            {
+                { DayOfWeek.Sunday, "일" },
+                { DayOfWeek.Monday, "월" },
+                { DayOfWeek.Tuesday, "화" },
+                { DayOfWeek.Wednesday, "수" },
+                { DayOfWeek.Thursday, "목" },
+                { DayOfWeek.Friday, "금" },
+                { DayOfWeek.Saturday, "토" }
+            };
+            foreach (var worker in workers)
+            {
+                foreach (var day in schedule.Keys)
+                {
+                    if (schedule[day].Any(workerEntry => workerEntry.Item1 == worker))
+                    {
+                        workerCount[worker]++;
+                        workerDayCount[worker]++;
+                        if (!workerDayOfWeekCount[worker].ContainsKey(day.DayOfWeek))
+                        {
+                            workerDayOfWeekCount[worker][day.DayOfWeek] = 0;
+                        }
+                        workerDayOfWeekCount[worker][day.DayOfWeek]++;
+                    }
+                }
+                // workerDayOfWeekCount를 요일 순으로 정렬한다
+                workerDayOfWeekCount[worker] = workerDayOfWeekCount[worker].OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+                StatisticText += $" - {worker}({workerCount[worker]}) : ";
+
+                StatisticText += string.Join(", ", workerDayOfWeekCount[worker].Select(pair => $"{dictEnglishDayToKoreanDay[pair.Key]} {pair.Value}"));
+                StatisticText += "\n";
+            }
+
+            //StatisticText += $" - 근무일 : {(EndDate-StartDate).Days+1-holidays.Count}일, 수요일이 아닌 휴무일 : {nonWednesdayHolidays.Count}일\n";
+            //StatisticText += $" - 근무 : (근무일+수요일이 아닌 휴무일) * 4 = {((EndDate - StartDate).Days + 1 - holidays.Count + nonWednesdayHolidays.Count) * 4}\n";
 
             for (var day = StartDate.Date; day <= EndDate.Date; day = day.AddDays(1))
             {
