@@ -31,7 +31,7 @@ namespace WooriHomeScheduler.Services
             // 기본배치 가즈아
             foreach (var day in workDays)
             {
-                if (holidays.Contains(day)) continue;
+                if (holidays.Contains(day) && !customWorkdays.ContainsKey(day)) continue;
                 schedule[day] = new List<(string, int)>();
 
                 int baseWorkerCount = customWorkdays.ContainsKey(day) ? customWorkdays[day] : 4;

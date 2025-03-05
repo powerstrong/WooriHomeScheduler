@@ -158,8 +158,6 @@ namespace WooriHomeScheduler
             var holidays = GetWednesdays(StartDate, EndDate).Concat(GetSecondThursdays(StartDate, EndDate)).Concat(GetFourthSundays(StartDate, EndDate)).Concat(customHolidayDates).ToList();
             var schedule = ScheduleGenerator.Generate(StartDate, EndDate, workers, holidays, customWorkdayDictionary, freeHolidayCount);
 
-            // 기간 중 수요일이 아닌 휴일 구하기
-            var nonWednesdayHolidays = holidays.Where(date => date.DayOfWeek != DayOfWeek.Wednesday).ToList();
             StatisticText += "<기본배치>\n";
             StatisticText += " - 먼저 각 근무일마다 4명씩, 또는 커스텀 근무자수만큼을 돌아가며 배치합니다.\n";
             StatisticText += " - 근무배치 우선순위 : 토월목화금일\n";
