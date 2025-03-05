@@ -67,11 +67,11 @@
                             VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
                     <StackPanel Grid.Column="1">
-                        <TextBlock Margin="5,5,5,0" Text="마지막 일요일" />
+                        <TextBlock Margin="5,5,5,0" Text="2번째 목요일, 4번째 일요일" />
                         <TextBox
                             MaxHeight="100"
                             Margin="5"
-                            Text="{Binding LastSundays}"
+                            Text="{Binding ThursAndSundays}"
                             VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
                 </Grid>
@@ -116,7 +116,7 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Margin="0,5" Header="커스텀 근무일 (휴무일과 중복체크 기능을 기대하지 마십시오)">
+            <GroupBox Margin="0,5" Header="커스텀 근무일 (휴무일보다 우선적으로 적용됩니다)">
                 <StackPanel Orientation="Horizontal">
                     <Calendar
                         Margin="5,0"
@@ -180,6 +180,7 @@
                 Grid.Row="1"
                 Margin="5"
                 AcceptsReturn="True"
+                FontFamily="Malgun Gothic"
                 Text="{Binding OutputText}"
                 TextWrapping="Wrap"
                 VerticalScrollBarVisibility="Visible" />
@@ -199,6 +200,7 @@
                 Grid.Row="1"
                 Margin="5"
                 AcceptsReturn="True"
+                FontFamily="Malgun Gothic"
                 Text="{Binding StatisticText}"
                 TextWrapping="Wrap"
                 VerticalScrollBarVisibility="Visible" />
