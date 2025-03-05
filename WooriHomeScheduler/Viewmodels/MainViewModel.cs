@@ -224,11 +224,13 @@ namespace WooriHomeScheduler
             StatisticText += $" - 기간 : {StartDate.ToString("yyyy-MM-dd(ddd)")} ~ {EndDate.ToString("yyyy-MM-dd(ddd)")}, 총 {(EndDate - StartDate).Days + 1}일\n";
 
             // 기간 내 근무일, 휴무일 통계
-            StatisticText += $" - 근무일 : {schedule.Count}일 -> {schedule.Count*4}근무\n";
-            StatisticText += $" - 휴무일 : {holidays.Count}일 -> {workerCount.Values.Sum() - schedule.Count*4}근무\n";
+            var nonWednesdayHolidays = holidays.Where(d => d.DayOfWeek != DayOfWeek.Wednesday).ToList();
+            var workFromHolidays = (nonWednesdayHolidays.Count - freeHolidayCount) * 4;
+            StatisticText += $" - 근무일 : {schedule.Count}일 -> {workerCount.Values.Sum() - workFromHolidays}근무\n";
+            StatisticText += $" - 휴무일 : {holidays.Count}일 -> {workFromHolidays}근무\n";
 
             // 전체 근무 수
-            StatisticText += $" - 총 근무 수 : {workerCount.Values.Sum()}회\n";
+            StatisticText += $" - 총 근무 수 : {workerCount.Values.Sum()}근무\n";
 
 
             for (var day = StartDate.Date; day <= EndDate.Date; day = day.AddDays(1))
