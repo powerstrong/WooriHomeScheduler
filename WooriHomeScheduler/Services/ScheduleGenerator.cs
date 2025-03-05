@@ -18,7 +18,7 @@ namespace WooriHomeScheduler.Services
                 workerCount[worker] = 0;
             }
 
-            // 근무배치 우선순위 : 토월목화금일
+            // 근무배치 우선순위 : 토월목화금일수
             List<DateTime> eachDays = EachDay(startDate, endDate).ToList();
             List<DateTime> workDays = new();
             workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Saturday));
@@ -27,11 +27,12 @@ namespace WooriHomeScheduler.Services
             workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Tuesday));
             workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Friday));
             workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Sunday));
+            workDays.AddRange(eachDays.Where(d => d.DayOfWeek == DayOfWeek.Wednesday));
 
             // 기본배치 가즈아
             foreach (var day in workDays)
             {
-                if (holidays.Contains(day) && !customWorkdays.ContainsKey(day)) continue;
+                if (holidays.Contains(day)) continue;
                 schedule[day] = new List<(string, int)>();
 
                 int baseWorkerCount = customWorkdays.ContainsKey(day) ? customWorkdays[day] : 4;
@@ -52,19 +53,9 @@ namespace WooriHomeScheduler.Services
                 return schedule;
             }
 
-            //// 토요일 근무가 적은 사람부터 들어가세요
-            //var additionalWorkersQueue = new Queue<string>(GetWorkersSortedBySaturdayCount(schedule, workers));
-
             Queue<DayOfWeek> dayPriorityQueue = new([DayOfWeek.Saturday, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Tuesday, DayOfWeek.Friday, DayOfWeek.Sunday]);
 
             var remainWork = (nonWednesdayHolidays.Count - freeHolidayCount) * 4;
-
-            // custom workday 마진만큼 더 빼주도록 하자
-            var howManyCustomWorkDay = customWorkdays.Count;
-            var customWorkdayCount = customWorkdays.Values.Sum();
-            var customWorkdayMargin = customWorkdayCount - howManyCustomWorkDay * 4;
-            remainWork -= customWorkdayMargin;
-
             while (remainWork > 0)
             {
                 var day = dayPriorityQueue.Dequeue();

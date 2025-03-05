@@ -155,16 +155,26 @@ namespace WooriHomeScheduler
                 return;
             }
 
-            var holidays = GetWednesdays(StartDate, EndDate).Concat(GetSecondThursdays(StartDate, EndDate)).Concat(GetFourthSundays(StartDate, EndDate)).Concat(customHolidayDates).ToList();
+            var holidays = GetWednesdays(StartDate, EndDate)
+                .Concat(GetSecondThursdays(StartDate, EndDate))
+                .Concat(GetFourthSundays(StartDate, EndDate))
+                .Concat(customHolidayDates)
+                .ToList();
+
+            // customWorkday에 있는 아이템을 holidays에서 제거
+            foreach (var customWorkday in customWorkdayDictionary.Keys)
+            {
+                holidays.Remove(customWorkday);
+            }
+
             var schedule = ScheduleGenerator.Generate(StartDate, EndDate, workers, holidays, customWorkdayDictionary, freeHolidayCount);
 
-            StatisticText += "<기본배치>\n";
+            StatisticText += "<배치 알고리즘>\n";
+            StatisticText += "1. 기본배치\n";
             StatisticText += " - 먼저 각 근무일마다 4명씩, 또는 커스텀 근무자수만큼을 돌아가며 배치합니다.\n";
-            StatisticText += " - 근무배치 우선순위 : 토월목화금일\n";
-            StatisticText += "\n";
-            StatisticText += "<추가배치>\n";
-            StatisticText += " - 추가근무 = {(공짜 휴일, 수요일)이 아닌 휴무일} x4\n";
-            StatisticText += " - 커스텀 근무일이 있으면 마진만큼 빼줍니다. (6명 일했다? -2명 ㄱㄱ)\n";
+            StatisticText += " - 근무배치 우선순위 : 토월목화금일수\n";
+            StatisticText += "2. 추가배치\n";
+            StatisticText += " - 추가근무 수 = {(공짜 휴일, 수요일)이 아닌 휴무일} x4\n";
             StatisticText += " - 근무가 적은 사람 순으로, 추가근무 수만큼 들어가기 시작합니다.\n";
             StatisticText += "\n";
             StatisticText += "<인원별 통계>\n";
@@ -214,8 +224,8 @@ namespace WooriHomeScheduler
             StatisticText += $" - 기간 : {StartDate.ToString("yyyy-MM-dd(ddd)")} ~ {EndDate.ToString("yyyy-MM-dd(ddd)")}, 총 {(EndDate - StartDate).Days + 1}일\n";
 
             // 기간 내 근무일, 휴무일 통계
-            StatisticText += $" - 근무일 : {schedule.Count}일\n";
-            StatisticText += $" - 휴무일 : {holidays.Count}일\n";
+            StatisticText += $" - 근무일 : {schedule.Count}일 -> {schedule.Count*4}근무\n";
+            StatisticText += $" - 휴무일 : {holidays.Count}일 -> {workerCount.Values.Sum() - schedule.Count*4}근무\n";
 
             // 전체 근무 수
             StatisticText += $" - 총 근무 수 : {workerCount.Values.Sum()}회\n";
