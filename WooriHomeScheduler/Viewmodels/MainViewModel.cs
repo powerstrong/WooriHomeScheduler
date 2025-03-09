@@ -81,6 +81,12 @@ namespace WooriHomeScheduler
             {
                 // 존재하지 않으면 새로운 항목 추가
                 CustomHolidays.Add(new CustomHolidayModel(newValue, false));
+
+                // CustomWorkdays에 있으면 제거
+                if (CustomWorkdays.FirstOrDefault(workday => workday.Date.Date == newValue.Date) is { } workdayToRemove)
+                {
+                    CustomWorkdays.Remove(workdayToRemove);
+                }
             }
 
             UpdateHolidays();
@@ -103,7 +109,15 @@ namespace WooriHomeScheduler
             {
                 // 존재하지 않으면 새로운 항목 추가
                 CustomWorkdays.Add(new CustomWorkdayModel(newValue, 4));
+
+                // CustomHolidays에 있으면 제거
+                if (CustomHolidays.FirstOrDefault(holiday => holiday.Date.Date == newValue.Date) is { } holidayToRemove)
+                {
+                    CustomHolidays.Remove(holidayToRemove);
+                }
             }
+
+            UpdateHolidays();
         }
 
         [RelayCommand]
@@ -112,6 +126,8 @@ namespace WooriHomeScheduler
             if (parameter is CustomHolidayModel item)
             {
                 CustomHolidays.Remove(item);
+
+                UpdateHolidays();
             }
         }
 
@@ -121,6 +137,8 @@ namespace WooriHomeScheduler
             if (parameter is CustomWorkdayModel item)
             {
                 CustomWorkdays.Remove(item);
+
+                UpdateHolidays();
             }
         }
 
@@ -142,16 +160,20 @@ namespace WooriHomeScheduler
         [RelayCommand]
         private void Calculate()
         {
+            // StartDate, EndDate 범위 밖의 CustomHolidays, CustomWorkdays는 제거
+            var customHolidays = new ObservableCollection<CustomHolidayModel>(CustomHolidays.Where(h => h.Date >= StartDate && h.Date <= EndDate));
+            var customWorkdays = new ObservableCollection<CustomWorkdayModel>(CustomWorkdays.Where(w => w.Date >= StartDate && w.Date <= EndDate));
+
             OutputText = StatisticText = string.Empty;
 
             List<string> workers = Workers.Split(' ').ToList();
-            List<DateTime> customHolidayDates = CustomHolidays.Select(h => h.Date).ToList();
-            int freeHolidayCount = CustomHolidays.Count(h => h.IsFree);
-            Dictionary<DateTime, int> customWorkdayDictionary = CustomWorkdays.ToDictionary(w => w.Date, w => w.WorkerCount);
+            List<DateTime> customHolidayDates = customHolidays.Select(h => h.Date).ToList();
+            int freeHolidayCount = customHolidays.Count(h => h.IsFree);
+            Dictionary<DateTime, int> customWorkdayDictionary = customWorkdays.ToDictionary(w => w.Date, w => w.WorkerCount);
 
             if (customWorkdayDictionary.Values.Any(count => count > workers.Count))
             {
-                OutputText = "근무자 수보다 많은 근무자가 배치되어 있습니다.";
+                OutputText = "근무자 수보다 많은 커스텀 근무일 근무자가 존재합니다.";
                 return;
             }
 
@@ -159,6 +181,7 @@ namespace WooriHomeScheduler
                 .Concat(GetSecondThursdays(StartDate, EndDate))
                 .Concat(GetFourthSundays(StartDate, EndDate))
                 .Concat(customHolidayDates)
+                .Distinct()
                 .ToList();
 
             // customWorkday에 있는 아이템을 holidays에서 제거
@@ -221,7 +244,7 @@ namespace WooriHomeScheduler
 
             // 전체 기간 날짜 수
             StatisticText += "\n<기타등등 통계>\n";
-            StatisticText += $" - 기간 : {StartDate.ToString("yyyy-MM-dd(ddd)")} ~ {EndDate.ToString("yyyy-MM-dd(ddd)")}, 총 {(EndDate - StartDate).Days + 1}일\n";
+            StatisticText += $" - 기간 : {StartDate:yyyy-MM-dd(ddd)} ~ {EndDate.ToString("yyyy-MM-dd(ddd)")}, 총 {(EndDate - StartDate).Days + 1}일\n";
 
             // 기간 내 근무일, 휴무일 통계
             var nonWednesdayHolidays = holidays.Where(d => d.DayOfWeek != DayOfWeek.Wednesday).ToList();
@@ -237,7 +260,7 @@ namespace WooriHomeScheduler
             {
                 if (schedule.ContainsKey(day))
                 {
-                    OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")}[{schedule[day].Count}] : ";
+                    OutputText += $"{day:yyyy-MM-dd(ddd)}[{schedule[day].Count}] : ";
 
                     var workersOfDay = schedule[day];
                     foreach (var worker in workersOfDay)
@@ -250,7 +273,7 @@ namespace WooriHomeScheduler
                 }
                 else
                 {
-                    OutputText += $"{day.ToString("yyyy-MM-dd(ddd)")} : 휴무일\n";
+                    OutputText += $"{day:yyyy-MM-dd(ddd)} : 휴무일\n";
                 }
             }
         }
@@ -258,7 +281,14 @@ namespace WooriHomeScheduler
         void UpdateHolidays()
         {
             var w = GetWednesdays(StartDate, EndDate);
-            var ts = GetFourthSundays(StartDate, EndDate).Concat(GetSecondThursdays(StartDate, EndDate)).OrderBy(date => date);
+            var ts = GetFourthSundays(StartDate, EndDate).Concat(GetSecondThursdays(StartDate, EndDate)).OrderBy(date => date).ToList();
+
+            // w에서 CustomWorkdays, CustomHolidays는 빼준다
+            var customWorkdays = CustomWorkdays.Select(w => w.Date).ToList();
+            var customHolidays = CustomHolidays.Select(h => h.Date).ToList();
+
+            w = w.Except(customWorkdays).Except(customHolidays).ToList();
+            ts = ts.Except(customWorkdays).Except(customHolidays).ToList();
 
             List<DateTime> c = CustomHolidays.Select(h => h.Date).ToList();
 
@@ -276,7 +306,7 @@ namespace WooriHomeScheduler
             var fourthSundays = new List<DateTime>();
 
             // 시작 월부터 종료 월까지 순회
-            DateTime current = new DateTime(start.Year, start.Month, 1);
+            DateTime current = new(start.Year, start.Month, 1);
             while (current <= end)
             {
                 // 해당 월의 첫 번째 일요일로 이동
@@ -330,7 +360,7 @@ namespace WooriHomeScheduler
             var secondThursdays = new List<DateTime>();
 
             // 시작 월부터 종료 월까지 순회
-            DateTime current = new DateTime(start.Year, start.Month, 1);
+            DateTime current = new(start.Year, start.Month, 1);
             while (current <= end)
             {
                 // 해당 월의 첫 번째 목요일로 이동
