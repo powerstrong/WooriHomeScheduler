@@ -40,7 +40,16 @@ namespace WooriHomeScheduler.Services
         // 요일 우선순위에 따른 근무일 반환
         private static List<DateTime> GetPriorityWorkDays(List<DateTime> eachDays)
         {
-            var priorityOrder = new[] { DayOfWeek.Saturday, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Tuesday, DayOfWeek.Friday, DayOfWeek.Sunday, DayOfWeek.Wednesday };
+            var priorityOrder = new[] { 
+                // 토일월금화목수
+                DayOfWeek.Saturday, 
+                DayOfWeek.Sunday, 
+                DayOfWeek.Monday, 
+                DayOfWeek.Friday, 
+                DayOfWeek.Tuesday, 
+                DayOfWeek.Thursday, 
+                DayOfWeek.Wednesday 
+            };
             var workDays = new List<DateTime>();
             foreach (var dayOfWeek in priorityOrder)
             {

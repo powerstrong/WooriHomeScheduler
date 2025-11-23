@@ -67,11 +67,11 @@
                             VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
                     <StackPanel Grid.Column="1">
-                        <TextBlock Margin="5,5,5,0" Text="2번째 목요일, 4번째 일요일" />
+                        <TextBlock Margin="5,5,5,0" Text="2번째, 4번째 목요일" />
                         <TextBox
                             MaxHeight="100"
                             Margin="5"
-                            Text="{Binding ThursAndSundays}"
+                            Text="{Binding Thursday2nd4th}"
                             VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
                 </Grid>

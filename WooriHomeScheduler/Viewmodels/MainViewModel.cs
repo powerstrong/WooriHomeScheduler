@@ -149,7 +149,7 @@ namespace WooriHomeScheduler
         private string everyWednesdays = "";
 
         [ObservableProperty]
-        private string thursAndSundays = "";
+        private string thursday2nd4th = "";
 
         [ObservableProperty]
         private string outputText = "";
@@ -179,7 +179,7 @@ namespace WooriHomeScheduler
 
             var holidays = GetWednesdays(StartDate, EndDate)
                 .Concat(GetSecondThursdays(StartDate, EndDate))
-                .Concat(GetFourthSundays(StartDate, EndDate))
+                .Concat(GetFourthThursdays(StartDate, EndDate))
                 .Concat(customHolidayDates)
                 .Distinct()
                 .ToList();
@@ -195,7 +195,7 @@ namespace WooriHomeScheduler
             StatisticText += "<배치 알고리즘>\n";
             StatisticText += "1. 기본배치\n";
             StatisticText += " - 먼저 각 근무일마다 4명씩, 또는 커스텀 근무자수만큼을 돌아가며 배치합니다.\n";
-            StatisticText += " - 근무배치 우선순위 : 토월목화금일수\n";
+            StatisticText += " - 근무배치 우선순위 : 토일월금화목수\n";
             StatisticText += "2. 추가배치\n";
             StatisticText += " - 추가근무 수 = {(공짜 휴일, 수요일)이 아닌 휴무일} x4\n";
             StatisticText += " - 근무가 적은 사람 순으로, 추가근무 수만큼 들어가기 시작합니다.\n";
@@ -243,7 +243,7 @@ namespace WooriHomeScheduler
             }
 
             // 전체 기간 날짜 수
-            StatisticText += "\n<기타등등 통계>\n";
+            StatisticText += "\n<종합 통계>\n";
             StatisticText += $" - 기간 : {StartDate:yyyy-MM-dd(ddd)} ~ {EndDate.ToString("yyyy-MM-dd(ddd)")}, 총 {(EndDate - StartDate).Days + 1}일\n";
 
             // 기간 내 근무일, 휴무일 통계
@@ -281,7 +281,7 @@ namespace WooriHomeScheduler
         void UpdateHolidays()
         {
             var w = GetWednesdays(StartDate, EndDate);
-            var ts = GetFourthSundays(StartDate, EndDate).Concat(GetSecondThursdays(StartDate, EndDate)).OrderBy(date => date).ToList();
+            var ts = GetFourthThursdays(StartDate, EndDate).Concat(GetSecondThursdays(StartDate, EndDate)).OrderBy(date => date).ToList();
 
             // w에서 CustomWorkdays, CustomHolidays는 빼준다
             var customWorkdays = CustomWorkdays.Select(w => w.Date).ToList();
@@ -293,7 +293,7 @@ namespace WooriHomeScheduler
             List<DateTime> c = CustomHolidays.Select(h => h.Date).ToList();
 
             EveryWednesdays = string.Join("\n", w.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
-            ThursAndSundays = string.Join("\n", ts.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
+            Thursday2nd4th = string.Join("\n", ts.Select(d => d.ToString("yyyy-MM-dd(ddd)")));
 
             List<DateTime> allHolidays = w.Concat(ts).Concat(c).ToList();
             allHolidays = allHolidays.Distinct().ToList();
@@ -301,35 +301,35 @@ namespace WooriHomeScheduler
             Holidays = $"휴무일 : {allHolidays.Count}일";
         }
 
-        static List<DateTime> GetFourthSundays(DateTime start, DateTime end)
+        static List<DateTime> GetFourthThursdays(DateTime start, DateTime end)
         {
-            var fourthSundays = new List<DateTime>();
+            var fourthThursdays = new List<DateTime>();
 
             // 시작 월부터 종료 월까지 순회
             DateTime current = new(start.Year, start.Month, 1);
             while (current <= end)
             {
-                // 해당 월의 첫 번째 일요일로 이동
-                DateTime firstSunday = current;
-                while (firstSunday.DayOfWeek != DayOfWeek.Sunday)
+                // 해당 월의 첫 번째 목요일로 이동
+                DateTime firstThursday = current;
+                while (firstThursday.DayOfWeek != DayOfWeek.Thursday)
                 {
-                    firstSunday = firstSunday.AddDays(1);
+                    firstThursday = firstThursday.AddDays(1);
                 }
 
-                // 네 번째 일요일로 이동
-                DateTime fourthSunday = firstSunday.AddDays(21);
+                // 네 번째 목요일로 이동
+                DateTime fourthSunday = firstThursday.AddDays(21);
 
-                // 네 번째 일요일이 범위 내에 있는지 확인
+                // 네 번째 목요일이 범위 내에 있는지 확인
                 if (fourthSunday >= start && fourthSunday <= end)
                 {
-                    fourthSundays.Add(fourthSunday);
+                    fourthThursdays.Add(fourthSunday);
                 }
 
                 // 다음 달로 이동
                 current = current.AddMonths(1);
             }
 
-            return fourthSundays;
+            return fourthThursdays;
         }
 
 
